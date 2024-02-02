@@ -1,4 +1,5 @@
-﻿# Установка пути к текущему расположению Zabbix Agent
+﻿[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# Установка пути к текущему расположению Zabbix Agent
 $oldAgentPath = "C:\Windows\zabbix-agent"
 $configFilePath = Join-Path -Path $oldAgentPath -ChildPath "zabbix_agentd.conf"
 
@@ -9,10 +10,15 @@ if (-not (Test-Path $configFilePath)) {
 }
 
 # Путь к загрузке новой версии Zabbix Agent 6
-$newAgentDownloadURL = "https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.24/zabbix_agent-6.0.24-windows-amd64-openssl.zip"
-$newAgentZipPath = "C:\Temp\zabbix_agent-6.0.24-windows-amd64-openssl.zip"
-$newAgentExtractPath = "C:\Temp\zabbix_agent_6"
+$newAgentDownloadURL = "https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.26/zabbix_agent-6.0.26-windows-amd64-openssl.zip"
+$tempPath = "C:\Temp"
+$newAgentZipPath = Join-Path -Path $tempPath -ChildPath "zabbix_agent-6.0.24-windows-amd64-openssl.zip"
+$newAgentExtractPath = Join-Path -Path $tempPath -ChildPath "zabbix_agent_6"
 
+# Проверка наличия и создание папки Temp, если она отсутствует
+if (-not (Test-Path $tempPath)) {
+    New-Item -ItemType Directory -Path $tempPath
+}
 # Скачивание новой версии Zabbix Agent 6
 Invoke-WebRequest -Uri $newAgentDownloadURL -OutFile $newAgentZipPath
 
