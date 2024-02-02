@@ -1,13 +1,34 @@
 ﻿[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-# Установка пути к текущему расположению Zabbix Agent
-$oldAgentPath = "C:\Windows\zabbix-agent"
-$configFilePath = Join-Path -Path $oldAgentPath -ChildPath "zabbix_agentd.conf"
+
+# Получение пути к службе Zabbix Agent
+$zabbixService = Get-WmiObject win32_service | Where-Object { $_.Name -like '*zabbix*' } | Select-Object -ExpandProperty PathName
+
+# Определение пути к каталогу Zabbix Agent
+if ($zabbixService -ne $null) {
+    # Удаление кавычек и аргументов из строки пути
+    $agentPath = $zabbixService -replace '"', '' -replace ' .*', ''
+    # Получение только пути к каталогу
+    $agentDirectory = [System.IO.Path]::GetDirectoryName($agentPath)
+} else {
+    Write-Host "Служба Zabbix Agent не найдена."
+    exit
+}
+
+# Поиск файла конфигурации в каталоге службы
+$configFile = Get-ChildItem -Path $agentDirectory -Filter "*.conf" | Where-Object { $_.Name -like "zabbix_agentd*.conf" } | Select-Object -ExpandProperty FullName
 
 # Проверка наличия файла конфигурации
-if (-not (Test-Path $configFilePath)) {
+if ($configFile -ne $null) {
+    $configFilePath = $configFile
+} else {
     Write-Host "Файл конфигурации Zabbix Agent не найден."
     exit
 }
+
+# Вывод используемых путей для проверки
+Write-Host "Путь к Zabbix Agent: $agentDirectory"
+Write-Host "Путь к файлу конфигурации: $configFilePath"
+
 
 # Путь к загрузке новой версии Zabbix Agent 6
 $newAgentDownloadURL = "https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.26/zabbix_agent-6.0.26-windows-amd64-openssl.zip"
@@ -40,11 +61,19 @@ if (-not (Test-Path "$newAgentExtractPath\bin\zabbix_agentd.exe")) {
 # Остановка Zabbix Agent
 Stop-Service -Name "Zabbix Agent" -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 5
-
 # Копирование новой версии Zabbix Agent в каталог назначения
-Copy-Item -Path "$newAgentExtractPath\bin\zabbix_agentd.exe" -Destination "$oldAgentPath\zabbix_agentd.exe" -Force
-Copy-Item -Path "$newAgentExtractPath\bin\zabbix_get.exe" -Destination "$oldAgentPath\zabbix_get.exe" -Force
-Copy-Item -Path "$newAgentExtractPath\bin\zabbix_sender.exe" -Destination "$oldAgentPath\zabbix_sender.exe" -Force
+$filesToCopy = @("zabbix_agentd.exe", "zabbix_get.exe", "zabbix_sender.exe")
+
+foreach ($file in $filesToCopy) {
+    $newFilePath = Join-Path -Path "$newAgentExtractPath\bin" -ChildPath $file
+
+    if (Test-Path $newFilePath) {
+        Write-Host "Копирование $file в $agentDirectory"
+        Copy-Item -Path $newFilePath -Destination $agentDirectory -Force
+    } else {
+        Write-Host "Файл $file не найден в каталоге $newAgentExtractPath."
+    }
+}
 
 # Выбор нового значения для замены в конфигурационном файле
 Write-Host "Выберите адрес сервера Zabbix Proxy:"
