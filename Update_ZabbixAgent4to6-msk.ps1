@@ -46,12 +46,24 @@ Copy-Item -Path "$newAgentExtractPath\bin\zabbix_agentd.exe" -Destination "$oldA
 Copy-Item -Path "$newAgentExtractPath\bin\zabbix_get.exe" -Destination "$oldAgentPath\zabbix_get.exe" -Force
 Copy-Item -Path "$newAgentExtractPath\bin\zabbix_sender.exe" -Destination "$oldAgentPath\zabbix_sender.exe" -Force
 
-# Новые значения для замены в конфигурационном файле
-$newServerValue = "10.15.251.252"
+# Выбор нового значения для замены в конфигурационном файле
+Write-Host "Выберите адрес сервера Zabbix Proxy:"
+Write-Host "1: МСК ip - 10.15.251.252"
+Write-Host "2: ЗХ ip - 10.45.7.103"
+Write-Host "3: ЮХ ip - 192.168.192.99"
+$choice = Read-Host "Введите номер (1, 2 или 3)"
+switch ($choice) {
+    "1" {$newServerValue = "10.15.251.252"}
+    "2" {$newServerValue = "10.45.7.103"}
+    "3" {$newServerValue = "192.168.192.99"}
+    default {Write-Host "Неверный выбор."; exit}
+}
+
 $content = Get-Content $configFilePath
 
 $newContent = $content -replace 'Server=.+', "Server=$newServerValue" `
                       -replace 'ServerActive=.+', "ServerActive=$newServerValue"
+
 
 # Проверка и добавление новых строк в конец файла, если они отсутствуют
 $denyKey = "DenyKey=system.run[*]"
