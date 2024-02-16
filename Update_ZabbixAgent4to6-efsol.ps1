@@ -77,11 +77,13 @@ foreach ($file in $filesToCopy) {
 
 # Выбор нового значения для замены в конфигурационном файле
 Write-Host "Выберите адрес сервера Zabbix Proxy:"
+Write-Host "0: Если нужен напрямую к серверу Zabbix"
 Write-Host "1: МСК ip - 10.15.251.252"
 Write-Host "2: ЗХ ip - 10.45.7.103"
 Write-Host "3: ЮХ ip - 192.168.192.99"
 $choice = Read-Host "Введите номер (1, 2 или 3)"
 switch ($choice) {
+	"0" {$newServerValue = "10.15.253.253"}
     "1" {$newServerValue = "10.15.251.252"}
     "2" {$newServerValue = "10.45.7.103"}
     "3" {$newServerValue = "192.168.192.99"}
