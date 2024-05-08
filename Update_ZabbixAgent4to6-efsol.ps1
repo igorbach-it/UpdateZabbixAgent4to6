@@ -83,7 +83,7 @@ Write-Host "2: ЗХ ip - 10.45.7.103"
 Write-Host "3: ЮХ ip - 192.168.192.99"
 $choice = Read-Host "Введите номер (1, 2 или 3)"
 switch ($choice) {
-	"0" {$newServerValue = "10.15.253.253"}
+	"0" {$newServerValue = "10.15.251.240"}
     "1" {$newServerValue = "10.15.251.252"}
     "2" {$newServerValue = "10.45.7.103"}
     "3" {$newServerValue = "192.168.192.99"}
